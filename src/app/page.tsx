@@ -1,103 +1,195 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import { useState, useEffect, useCallback } from 'react';
+import CoreTimeCard from '@/components/CoreTimeCard';
+import { CORE_TIMES, POLLING_INTERVAL, API_ENDPOINTS } from '@/utils/constants';
+import {
+  getBrowserId,
+  getTodayString,
+  saveLocalParticipation,
+  removeLocalParticipation,
+  isParticipating
+} from '@/utils/helpers';
+import type { StatusResponse, ApiResponse, CoreTime } from '@/types';
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+export default function HomePage() {
+  const [participantCounts, setParticipantCounts] = useState<StatusResponse>({
+    '1000': 0,
+    '1500': 0,
+    '2000': 0,
+    '2200': 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const today = getTodayString();
+  const browserId = typeof window !== 'undefined' ? getBrowserId() : '';
+
+  // 상태 조회 함수
+  const fetchStatus = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_ENDPOINTS.STATUS}?date=${today}`);
+      const result: ApiResponse<StatusResponse> = await response.json();
+
+      if (result.success && result.data) {
+        setParticipantCounts(result.data);
+        setLastUpdated(new Date());
+        setError('');
+      } else {
+        throw new Error(result.error || 'Failed to fetch status');
+      }
+    } catch (err: unknown) {
+      console.error('Status fetch error:', err);
+      setError('상태를 불러오는데 실패했습니다');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [today]);
+
+  // 참여하기 함수
+  const handleParticipate = async (coreTime: string, password: string) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.PARTICIPATE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          date: today,
+          time: coreTime,
+          browserId,
+          password
+        }),
+      });
+
+      const result: ApiResponse<{ count: number }> = await response.json();
+
+      if (result.success && result.data) {
+        // 로컬 스토리지에 참여 정보 저장
+        saveLocalParticipation(coreTime as CoreTime, today);
+        
+        // 상태 업데이트
+        setParticipantCounts(prev => ({
+          ...prev,
+          [coreTime]: result.data!.count
+        }));
+      } else {
+        throw new Error(result.error || 'Failed to participate');
+      }
+    } catch (err: unknown) {
+      console.error('Participate error:', err);
+      throw new Error((err as Error).message || '참여에 실패했습니다');
+    }
+  };
+
+  // 참여 취소 함수
+  const handleCancel = async (coreTime: string, password: string) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.CANCEL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          date: today,
+          time: coreTime,
+          browserId,
+          password
+        }),
+      });
+
+      const result: ApiResponse<{ count: number }> = await response.json();
+
+      if (result.success && result.data) {
+        // 로컬 스토리지에서 참여 정보 삭제
+        removeLocalParticipation(coreTime as CoreTime, today);
+        
+        // 상태 업데이트
+        setParticipantCounts(prev => ({
+          ...prev,
+          [coreTime]: result.data!.count
+        }));
+      } else {
+        throw new Error(result.error || 'Failed to cancel participation');
+      }
+    } catch (err: unknown) {
+      console.error('Cancel error:', err);
+      throw new Error((err as Error).message || '참여 취소에 실패했습니다');
+    }
+  };
+
+  // 초기 로드 및 폴링 설정
+  useEffect(() => {
+    fetchStatus();
+
+    const interval = setInterval(fetchStatus, POLLING_INTERVAL);
+    return () => clearInterval(interval);
+  }, [fetchStatus]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">로딩 중...</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* 헤더 */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            오늘의 모각코 현황
+          </h1>
+          <p className="text-gray-600">
+            함께 코딩할 시간을 선택하고 참여해보세요!
+          </p>
+          {lastUpdated && (
+            <p className="text-sm text-gray-500 mt-2">
+              마지막 업데이트: {lastUpdated.toLocaleTimeString('ko-KR')}
+            </p>
+          )}
+        </div>
+
+        {/* 에러 메시지 */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg">
+            <p className="text-red-600">{error}</p>
+            <button
+              onClick={fetchStatus}
+              className="mt-2 text-sm text-red-700 underline hover:no-underline"
+            >
+              다시 시도
+            </button>
+          </div>
+        )}
+
+        {/* 코어 타임 카드들 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {CORE_TIMES.map((coreTimeInfo) => (
+            <CoreTimeCard
+              key={coreTimeInfo.time}
+              coreTimeInfo={coreTimeInfo}
+              participantCount={participantCounts[coreTimeInfo.time]}
+              isParticipating={isParticipating(coreTimeInfo.time, today)}
+              onParticipate={handleParticipate}
+              onCancel={handleCancel}
+              isLoading={isLoading}
+            />
+          ))}
+        </div>
+
+        {/* 푸터 */}
+        <div className="mt-12 text-center text-sm text-gray-500">
+          <p>💡 참여 취소를 위해 비밀번호를 꼭 기억해주세요</p>
+          <p className="mt-1">🔄 참여 현황은 3초마다 자동으로 업데이트됩니다</p>
+        </div>
+      </div>
     </div>
   );
 }
