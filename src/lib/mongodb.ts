@@ -36,7 +36,7 @@ export async function getDatabase(): Promise<Db> {
 
 export async function getParticipationsCollection(): Promise<Collection<Participation>> {
   const db = await getDatabase();
-  return db.collection<Participation>('participations');
+  return db.collection<Participation>('participants');
 }
 
 // 인덱스 설정 함수 (앱 시작 시 호출)
