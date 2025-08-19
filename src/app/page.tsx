@@ -144,10 +144,10 @@ export default function HomePage() {
         {/* 헤더 */}
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-tight">
-            오늘의 모각코 현황
+            오늘의 ASC 모각코 현황
           </h1>
           <p className="text-lg text-gray-700 mb-4">
-            지금, 코딩 메이트와 함께할 코어 타임을 선택하세요!
+            참여할 코어 타임을 선택하세요! 예약은 익명!!
           </p>
           {lastUpdated && (
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full border border-blue-200">

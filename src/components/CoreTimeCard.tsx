@@ -75,7 +75,7 @@ export default function CoreTimeCard({
             <span className="text-3xl font-bold text-blue-600 leading-none">
               {participantCount > 10 ? '10+' : participantCount}
             </span>
-            <span className="text-sm font-medium text-gray-600">명 참여 중</span>
+            <span className="text-sm font-medium text-gray-600">명 참여 예정</span>
           </div>
         </div>
 
