@@ -6,7 +6,23 @@ if (!process.env.MONGODB_URI) {
 }
 
 const uri = process.env.MONGODB_URI;
-const options = {};
+const options = {
+  // Vercel 환경에서 SSL/TLS 연결 안정화
+  tls: true,
+  tlsAllowInvalidCertificates: false,
+  tlsAllowInvalidHostnames: false,
+  // 연결 타임아웃 설정
+  serverSelectionTimeoutMS: 10000,
+  connectTimeoutMS: 10000,
+  socketTimeoutMS: 10000,
+  // 연결 풀 설정
+  maxPoolSize: 10,
+  minPoolSize: 0,
+  maxIdleTimeMS: 30000,
+  // 재시도 설정
+  retryWrites: true,
+  retryReads: true,
+};
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;

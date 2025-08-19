@@ -67,8 +67,35 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Status API error:', error);
+    
+    // MongoDB 연결 에러인지 확인
+    const err = error as Error;
+    let errorMessage = 'Internal server error';
+    
+    if (err.message?.includes('MongoServerSelectionError')) {
+      errorMessage = 'Database connection failed';
+      console.error('MongoDB connection error details:', {
+        name: err.name,
+        message: err.message,
+        stack: err.stack
+      });
+    } else if (err.message?.includes('SSL') || err.message?.includes('TLS')) {
+      errorMessage = 'Database SSL/TLS connection error';
+      console.error('SSL/TLS error details:', {
+        name: err.name,
+        message: err.message
+      });
+    }
+    
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { 
+        success: false, 
+        error: errorMessage,
+        // 개발 환경에서만 상세 에러 정보 제공
+        ...(process.env.NODE_ENV === 'development' && { 
+          details: err.message 
+        })
+      },
       { status: 500 }
     );
   }
