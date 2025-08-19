@@ -25,7 +25,7 @@ export default function CoreTimeCard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const maxParticipants = 20; // 시각화를 위한 최대값
+  const maxParticipants = 10; // 시각화를 위한 최대값
   
   // 블록 시각화를 위한 배열 생성
   const participantBlocks = Array.from({ length: Math.min(participantCount, maxParticipants) }, (_, i) => i);
@@ -73,7 +73,7 @@ export default function CoreTimeCard({
           <div className="flex items-center gap-2 mb-4">
             <span className="text-sm font-medium text-gray-600">현재</span>
             <span className="text-3xl font-bold text-blue-600 leading-none">
-              {participantCount > 20 ? '20+' : participantCount}
+              {participantCount > 10 ? '10+' : participantCount}
             </span>
             <span className="text-sm font-medium text-gray-600">명 참여 중</span>
           </div>
@@ -81,44 +81,24 @@ export default function CoreTimeCard({
 
         {/* 참여 인원 블록 시각화 */}
         <div className="mb-6">
-          <div className="grid grid-cols-10 gap-1 mb-3">
+          <div className="grid grid-cols-10 gap-1.5 mb-3">
             {participantBlocks.map((_, index) => (
               <div
                 key={`filled-${index}`}
-                className="aspect-square bg-gradient-to-br from-blue-400 to-blue-600 rounded-sm shadow-sm animate-pulse"
+                className="aspect-square bg-gradient-to-br from-blue-400 to-blue-600 rounded-md shadow-sm animate-pulse"
                 style={{ 
-                  animationDelay: `${index * 50}ms`,
+                  animationDelay: `${index * 80}ms`,
                   animationDuration: '2s'
                 }}
               />
             ))}
-            {emptyBlocks.slice(0, 10 - participantBlocks.length).map((_, index) => (
+            {emptyBlocks.map((_, index) => (
               <div
                 key={`empty-${index}`}
-                className="aspect-square bg-gray-200 rounded-sm border border-gray-300"
+                className="aspect-square bg-gray-200 rounded-md border border-gray-300"
               />
             ))}
           </div>
-          {maxParticipants > 10 && (
-            <div className="grid grid-cols-10 gap-1">
-              {participantBlocks.slice(10).map((_, index) => (
-                <div
-                  key={`filled-row2-${index}`}
-                  className="aspect-square bg-gradient-to-br from-blue-400 to-blue-600 rounded-sm shadow-sm animate-pulse"
-                  style={{ 
-                    animationDelay: `${(index + 10) * 50}ms`,
-                    animationDuration: '2s'
-                  }}
-                />
-              ))}
-              {emptyBlocks.slice(10 - Math.min(participantCount, 10)).map((_, index) => (
-                <div
-                  key={`empty-row2-${index}`}
-                  className="aspect-square bg-gray-200 rounded-sm border border-gray-300"
-                />
-              ))}
-            </div>
-          )}
           <div className="flex justify-between text-xs font-medium text-gray-500 mt-2">
             <span>0명</span>
             <span>{maxParticipants}명</span>
