@@ -139,20 +139,23 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100">
+      <div className="container mx-auto px-6 py-12 max-w-5xl">
         {/* 헤더 */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-tight">
             오늘의 모각코 현황
           </h1>
-          <p className="text-gray-600">
-            함께 코딩할 시간을 선택하고 참여해보세요!
+          <p className="text-lg text-gray-700 mb-4">
+            지금, 코딩 메이트와 함께할 코어 타임을 선택하세요!
           </p>
           {lastUpdated && (
-            <p className="text-sm text-gray-500 mt-2">
-              마지막 업데이트: {lastUpdated.toLocaleTimeString('ko-KR')}
-            </p>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full border border-blue-200">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium text-blue-700">
+                실시간 업데이트 중
+              </span>
+            </div>
           )}
         </div>
 
@@ -185,9 +188,36 @@ export default function HomePage() {
         </div>
 
         {/* 푸터 */}
-        <div className="mt-12 text-center text-sm text-gray-500">
-          <p>💡 참여 취소를 위해 비밀번호를 꼭 기억해주세요</p>
-          <p className="mt-1">🔄 참여 현황은 3초마다 자동으로 업데이트됩니다</p>
+        <div className="mt-16 pt-8 border-t border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-xl border border-amber-200">
+              <div className="flex-shrink-0 w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center">
+                <span className="text-amber-600 text-sm">💡</span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-amber-800 text-sm mb-1">비밀번호 보관</h4>
+                <p className="text-amber-700 text-xs leading-relaxed">
+                  참여 취소 시 입력한 비밀번호가 필요하니 꼭 기억해주세요
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <div>
+                <h4 className="font-semibold text-blue-800 text-sm mb-1">실시간 업데이트</h4>
+                <p className="text-blue-700 text-xs leading-relaxed">
+                  참여 현황은 3초마다 자동으로 업데이트됩니다
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-8 text-xs text-gray-400">
+            <p>모각코어 - 함께하는 코딩 시간</p>
+          </div>
         </div>
       </div>
     </div>
